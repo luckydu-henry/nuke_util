@@ -12,7 +12,7 @@ namespace Hunt {
 
         enum LogLevel { eTrace = 0, eDebug, eInfo, eWarn, eError, eFatal };
         // Format description [Time Level TID]
-        inline constexpr std::string_view gFormatString = "[{:%Y-%m-%d %X} Hunt:{:6s}] ";
+        inline constexpr std::string_view gFormatString = "[{:%Y-%m-%d %X} Hunt:{:5s}] ";
         // These are bind with LogLevel indecies.
         inline constexpr std::string_view gLevelString[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
         // Default output log file
@@ -26,7 +26,7 @@ namespace Hunt {
             ~DbtLogger() = default;
 
             static DbtLogger    scsInst, sfsInst;
-            std::osyncstream    mStream;
+            std::ostream&       mStream;
             uint8_t             mState;  // Fstream doesn't support.
         public:
             // Use this to get desired logger one is console and one is file
