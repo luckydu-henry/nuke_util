@@ -2,12 +2,18 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <thread>
 #include <nkutil/logging.hpp>
 #include <nkutil/console_color.hpp>
 namespace nkutil {
-    std::string default_formatter(const logger_info& info, logger_level lv) {
+    std::string default_logger_formatter(const logger_info& info, logger_level lv) {
         auto const time = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
-        return std::format(logger_info::default_format, time, info.logger_name, info.level_string_map[static_cast<size_t>(lv)]);
+        // Until implementation date -- 2024/2/16, gcc & clang & msvc had all implemented thread::id formatter.
+        // So I used it here, not bad really, remember to use latest feature level of your compiler.
+        // Or you can use C++23 feature level in the future since this is a C++23 feature.
+        auto const tid = std::this_thread::get_id();
+        // default_logger_formatter uses this format pattern -- TIME THREAD-ID NAME [LEVEL] <space>
+        return std::format("{:%Y/%m/%d %X} {:0>10} {:s} [{:s}] ", time, tid, info.logger_name, info.level_string_map[static_cast<size_t>(lv)]);
     }
     std::string make_ansi_console_color(console_color_usage usg, uint32_t cl) {
         uint8_t r = cl >> 16, g = cl >> 8, b = cl;
@@ -18,12 +24,16 @@ namespace nkutil {
     }
     int init_default_loggers(std::string_view lgname, std::string_view fname) {
         static std::ofstream s_fs(fname.data());
+        if (!s_fs.is_open()) {
+            return 0;
+        }
         logger_info cinfo{ std::cout, lgname };
         static console_logger s_clogger{ cinfo };
         logger_info finfo{ s_fs, lgname };
         static file_logger    s_flogger{ finfo };
         std::get<console_logger*>(g_default_loggers) = &s_clogger;
         std::get<file_logger   *>(g_default_loggers) = &s_flogger;
+
         return 1;
     }
 }

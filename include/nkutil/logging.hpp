@@ -19,21 +19,19 @@ namespace nkutil {
 
     inline constexpr auto g_logger_level_count = static_cast<std::size_t>(logger_level::_level_count);
     struct logger_info;
-
+    // For custom format string.
+    using  logger_formatter_t = std::function<std::string(const logger_info&, logger_level)>;
     // This would be assigned to formatter.
-    std::string default_formatter(const logger_info&, logger_level);
+    std::string default_logger_formatter(const logger_info&, logger_level);
 
     struct logger_info {
-        using formatter_t = std::function<std::string(const logger_info&, logger_level)>;
         // Must fill in stream object, however logger_name can actually ignore.
         std::ostream&    object;
         std::string_view logger_name;
         // Default uses ascii characters as level flag, but you can change them to string.
-        std::array<std::string_view, g_logger_level_count> level_string_map = {"T"sv, "I"sv, "W"sv, "E"sv, "F"sv};
-        // default_formatter uses this format pattern.
-        static constexpr std::string_view default_format = "{:%Y/%m/%d %X} {:s} [{:s}] "sv;
+        std::array<std::string_view, g_logger_level_count> level_string_map = {"~"sv, "="sv, "^"sv, "*"sv, "!"sv};
         // Logger name and level string will be provided by info but time format must be handled by users.
-        formatter_t formatter = default_formatter;
+        logger_formatter_t formatter = default_logger_formatter;
     };
     // The template prototype of logger class.
     // File logger use this is enough console logger supports color output.
